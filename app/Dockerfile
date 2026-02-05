@@ -10,5 +10,5 @@ COPY src ./src
 FROM node:18-alpine 
 WORKDIR /app
 COPY --from=builder /app .
-EXOPOSE 3000
+EXPOSE 3000
 CMD ["npm","start"]
