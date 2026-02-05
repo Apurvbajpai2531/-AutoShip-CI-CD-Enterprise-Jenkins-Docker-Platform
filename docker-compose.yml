@@ -1,8 +1,13 @@
+<<<<<<< HEAD
+=======
+version: "3.8"     
+>>>>>>> e756acd (Fix: remove Jenkins from deployment compose file)
 services:
   app:
     build: ./app
     ports:
       - "3000:3000"
+<<<<<<< HEAD
 
   jenkins:
     image: jenkins/jenkins:lts
@@ -15,3 +20,5 @@ services:
 
 volumes:
   jenkins_home:
+=======
+>>>>>>> e756acd (Fix: remove Jenkins from deployment compose file)
