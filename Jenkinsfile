@@ -22,13 +22,12 @@ pipeline {
       }
     }
 
-    stage('Health Check') {
-      steps {
-        sh 'sleep 10'
-        sh 'curl -f http://localhost:3000/health'
-      }
-    }
+  stage('Health Check') {
+  steps {
+    sh 'curl -f http://localhost:3000/health'
   }
+    }
+      }
 
   post {
     failure {
