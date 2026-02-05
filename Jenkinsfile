@@ -3,28 +3,29 @@ pipeline {
 
   stages {
 
-    stage('Repo Cloning') {
+    stage('Clone Repo') {
       steps {
         git branch: 'main',
             url: 'https://github.com/Apurvbajpai2531/-AutoShip-CI-CD-Enterprise-Jenkins-Docker-Platform.git'
       }
     }
 
-    stage('Build Docker Image') {
+    stage('Build Image') {
       steps {
         sh 'docker build -t autorship-app ./app'
       }
     }
 
-    stage('Deploy Application') {
+    stage('Deploy') {
       steps {
-        sh 'docker-compose up -d --build'
+        sh 'docker compose up -d --build'
       }
     }
 
     stage('Health Check') {
       steps {
-        sh 'curl -f http://localhost/health'
+        sh 'sleep 10'
+        sh 'curl -f http://localhost:3000/health'
       }
     }
   }
@@ -35,4 +36,4 @@ pipeline {
     }
   }
 }
-
+   
