@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        EC2_IP  = "16.171.38.150"
+        APP_DIR = "autoship-cicd-platform"
+    }
+
     stages {
 
         stage('Clone Repo') {
@@ -10,54 +15,81 @@ pipeline {
             }
         }
 
-        stage('Build Image') {
+        stage('Build Docker Image') {
             steps {
                 sh 'docker build -t autoship-cicd-app ./app'
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to EC2') {
             steps {
-                sh 'docker compose up -d --build'
+                sshagent(['ec2-ssh-key']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ubuntu@${EC2_IP} << 'EOF'
+                        set -e
+
+                        if [ ! -d ${APP_DIR} ]; then
+                            git clone https://github.com/Apurvbajpai2531/-AutoShip-CI-CD-Enterprise-Jenkins-Docker-Platform.git ${APP_DIR}
+                        fi
+
+                        cd ${APP_DIR}
+                        git pull origin main
+
+                        docker-compose down || true
+                        docker-compose up -d --build
+                    EOF
+                    """
+                }
             }
         }
-
-        // TEMPORARILY DISABLED
-        // stage('Health Check') {
-        //     steps {
-        //         sh 'curl -f http://localhost:3000/health'
-        //     }
-        // }
-
     }
 
     post {
-        failure {
-            echo 'Deployment failed'
+        success {
+            echo "✅ Deployment successful on EC2"
 
-            // Email Notification
-            emailext (
-                to: 'apurvbjp@gmail.com',  // your email
-                subject: "Jenkins Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            emailext(
+                to: 'apurvbjp@gmail.com',
+                subject: "✅ Jenkins SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-                    Hi Apurv,
+Hi Apurv,
 
-                    The Jenkins pipeline for job '${env.JOB_NAME}' has failed.
+Your Jenkins pipeline ran successfully 🎉
 
-                    Build Number: ${env.BUILD_NUMBER}
-                    Status: ${currentBuild.currentResult}
-                    Check console output at: ${env.BUILD_URL}
+Job Name : ${env.JOB_NAME}
+Build No : ${env.BUILD_NUMBER}
+Status   : SUCCESS
 
-                    Regards,
-                    Jenkins
-                """
+View build details:
+${env.BUILD_URL}
+
+Regards,
+Jenkins
+"""
             )
         }
-        success {
-            emailext (
+
+        failure {
+            echo "❌ Deployment failed"
+
+            emailext(
                 to: 'apurvbjp@gmail.com',
-                subject: "Jenkins Build Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Good news! The Jenkins pipeline '${env.JOB_NAME}' succeeded.\nCheck it here: ${env.BUILD_URL}"
+                subject: "❌ Jenkins FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Hi Apurv,
+
+Your Jenkins pipeline has FAILED ❌
+
+Job Name : ${env.JOB_NAME}
+Build No : ${env.BUILD_NUMBER}
+Status   : FAILURE
+
+Check logs here:
+${env.BUILD_URL}
+
+Regards,
+Jenkins
+"""
             )
         }
     }
