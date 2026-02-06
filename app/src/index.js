@@ -6,6 +6,37 @@ const app = express();
 app.use(express.json());
 app.use(routes);
 
+app.get('/', (req, res) => {
+  res.send('🚀 Autoship CI/CD App is LIVE on AWS EC2');
+});
+
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP' });
+});
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
+
+(async () => {
+  try {
+    await pool.query('SELECT 1');
+    console.log('✅ Database connected');
+  } catch (err) {
+    console.error('❌ Database connection failed (running without DB)');
+  }
+})();
+const express = require('express');
+const routes = require('./routes');
+const pool = require('./db');
+
+const app = express();
+app.use(express.json());
+app.use(routes);
+
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, async () => {
